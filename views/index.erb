@@ -1,0 +1,283 @@
+<html>
+	<head>
+	    <meta charset="utf-8">
+	    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	    <meta name="viewport" content="width=device-width, initial-scale=1">
+	    <title>Beer grapher</title>
+	    <link href="css/bootstrap.min.css" rel="stylesheet">
+	    <link href="css/beer.css" rel="stylesheet">
+	    <link href="css/avgrund.css" rel="stylesheet">
+    	<link rel="stylesheet" type="text/css" href="css/bootstrap-select.min.css">
+	</head>
+	<body>
+		<nav class="navbar navbar-default" role="navigation">
+		  <div class="container-fluid">
+		    <!-- Brand and toggle get grouped for better mobile display -->
+		    <div class="navbar-header">
+		      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+		        <span class="sr-only">Toggle navigation</span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		        <span class="icon-bar"></span>
+		      </button>
+		      <div ><a class="navbar-brand" href="#"><img height="30" src="img/beer-icon.png">&nbsp;&nbsp;&nbsp;Beergrapher</a></div>
+		    </div>
+
+		    <!-- Collect the nav links, forms, and other content for toggling -->
+		    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+		      <ul class="nav navbar-nav">
+		        <li class="active"><a href="#">Current brew</a></li>
+		        <li id="newBrew"><a href="#" >New brew</a></li>
+		         <li class="dropdown">
+		          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Menu<b class="caret"></b></a>
+		          <ul class="dropdown-menu">
+		          		<li><a href="#" onclick="deleteSelectedBrew()">Delete brew</a></li> 
+		          		<li><a href="#" onclick="setCurrentBrewAsActive()">Set brew as active</a></li> 
+		          		<li><a href="#" onclick="selectSensors()">Select sensors</a></li> 
+		          </ul>
+		        </li>
+		        <li class="dropdown">
+		          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Old brews<b class="caret"></b></a>
+		          <ul class="dropdown-menu beermenu" id="brew_menu">
+
+		          </ul>
+		        </li>
+		      </ul>
+
+		      <ul class="nav navbar-nav navbar-right">
+		        <li><a href="#">Current status</a></li>
+		      </ul>
+		    </div><!-- /.navbar-collapse -->
+		  </div><!-- /.container-fluid -->
+		</nav>
+		<div id="graphcontainer" style="height:75%;width:99%"><canvas id="beerchart"></canvas></div>
+		<div id="legend"></div>
+		<div id="newbeer">
+			</br>
+			<div class="input-group">
+				<span class="input-group-addon">Name</span>
+				<input type="text" class="beername form-control" placeholder="beername">
+			</div>
+			</br>
+				<div class="input-group">
+				<span class="input-group-addon">Style</span>
+		                    <select class="beertype selectpicker show-tick form-control" data-size="auto">
+		                        <option>Altbier</option>
+								<option>Amber ale</option>
+								<option>Barley wine</option>
+								<option>Berliner weisse</option>
+								<option>Bière de Garde</option>
+								<option>Bitter</option>
+								<option>Blonde Ale</option>
+								<option>Bock (Traditional)[23]</option>
+								<option>Brown ale</option>
+								<option>California Common</option>
+								<option>Cream Ale</option>
+								<option>Dortmunder Export</option>
+								<option>Doppelbock</option>
+								<option>Dunkel</option>
+								<option>Dunkelweizen</option>
+								<option>Eisbock</option>
+								<option>Fruit lambic</option>
+								<option>Golden Ale</option>
+								<option>Gose</option>
+								<option>Gueuze</option>
+								<option>Hefeweizen</option>
+								<option>Helles</option>
+								<option>India pale ale</option>
+								<option>Kölsch</option>
+								<option>Lambic</option>
+								<option>Light ale</option>
+								<option>Maibock/Helles bock</option>
+								<option>Malt liquor</option>
+								<option>Mild</option>
+								<option>Oktoberfestbier/Märzenbier</option>
+								<option>Old ale</option>
+								<option>Oud bruin</option>
+								<option>Pale ale</option>
+								<option>Pilsener/Pilsner/Pils</option>
+								<option>Porter</option>
+								<option>Red ale</option>
+								<option>Roggenbier</option>
+								<option>Saison</option>
+								<option>Scotch ale</option>
+								<option>Steam beer</option>
+								<option>Stout</option>
+								<option>Schwarzbier</option>
+								<option>Vienna lager</option>
+								<option>Witbier</option>
+								<option>Weissbier</option>
+								<option>Weizenbock</option>
+		                    </select>
+		    	</div>
+
+			</br>
+			<button class="btn btn-default" onclick="addBeer()" id="addBeer" type="button">Add!</button>
+		</div>
+	</body>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/dygraph-combined.js"></script>
+
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/Chart.js"></script>
+    <script src="js/legend.js"></script>
+    <script src="js/chartoptions.js"></script>
+    <script src="js/jquery.avgrund.js"></script>
+    <script type="text/javascript" src="js/bootstrap-select.min.js"></script>
+	<script type="text/javascript" language="JavaScript">
+
+		function openBrew(id){
+
+		options = getChartOptions();
+			      	console.log("SUCESS");
+
+		$.ajax
+			   ({
+			      type: "GET",
+			      url: 'temps/'+id,
+			      success: function (data) {
+			      	$.ajax({
+			      		type: "GET",
+			      		url: 'brews/'+id,
+			      		async: "false",
+			      		success: function (namedata) {
+
+			      			var beername = jQuery.parseJSON(namedata).beername
+			      			var brewdata = jQuery.parseJSON(data).data[0];
+					      	temptitle = brewdata.description;
+					      	tempdata = brewdata.temperatures;
+					      	var startdate = new Date(brewdata.start);
+
+					      	var chartlabels = Array();
+					      	var modnumber = Math.round(tempdata.length/40);
+
+					      	var newdata = "Date,Temperature\n";
+					      	var cnt = 0;
+					      	var currsum = 0;
+
+					      	for(var i = 0; i < tempdata.length;i++){
+					      		var d = new Date(startdate.getTime() + (brewdata.increments*i)*1000)
+					      		newdata += getISODateTime(d)+","+tempdata[i]+"\n";
+					      	}
+
+					      	new Dygraph(document.getElementById("graphcontainer"),
+				              newdata,
+				              {
+					            title: 'Temperature for '+beername,
+					            ylabel: 'Temperature (C)',
+					            showRangeSelector: true
+				              });	
+
+			      		}
+			      	});
+
+
+			      	
+			      }
+
+			  });
+
+		}
+function getISODateTime(d){
+    // padding function
+    var s = function(a,b){return(1e15+a+"").slice(-b)};
+
+    // default date parameter
+    if (typeof d === 'undefined'){
+        d = new Date();
+    };
+
+    // return ISO datetime
+    return d.getFullYear() + '/' +
+        s(d.getMonth()+1,2) + '/' +
+        s(d.getDate(),2) + ' ' +
+        s(d.getHours(),2) + ':' +
+        s(d.getMinutes(),2) + ':' +
+        s(d.getSeconds(),2);
+}
+function refreshBrewlist(){
+			var brew_menu = document.getElementById("brew_menu");
+			brew_menu.innerHTML = "";
+			$.ajax
+			   ({
+			      type: "GET",
+			      url: 'brews',
+			      success: function (data) {
+			      	var brewdata = jQuery.parseJSON(data);
+			      	for(var i = 0; i < brewdata.length;i++){
+			      		var type = brewdata[i].beertype;
+			      		var name = brewdata[i].beername;
+			      		var date = brewdata[i].date;
+			      		var liste = '<li><a href="#" onclick="openBrew('+brewdata[i].id+')">'+name+' ('+date+')</a></li>'
+			      		brew_menu.innerHTML = brew_menu.innerHTML + liste;
+			      	}
+			      }
+
+			  });
+		}
+		$(window).on('load', function () {
+			refreshBrewlist();
+			openBrew("current");
+            $('.selectpicker').selectpicker({
+                'selectedText': 'cat'
+            });
+            $('#newbeer').hide();
+
+        });
+		function addBeer(){
+	        console.log($( '#bs3Select').val());
+				   var jsonData = '{"beername": "' + $('.beername').eq(1).val() + '", "beertype" : "' + $('.beertype').eq(1).val() + '"}'
+				   $.ajax
+				   ({
+				      type: "POST",
+				      url: 'newbrew/',
+				      data:jsonData ,
+				      success: function () {
+				      	$('.avgrund-close').click();
+				       	refreshBrewlist();
+				      }
+
+				  });
+		}
+        function resizeCanvas(){
+			$("#beerchart").get(0).width = $("#graphcontainer").width();
+			$("#beerchart").get(0).height = $("#graphcontainer").height();
+		}
+		
+
+		$('#newBrew').avgrund({
+			width: 400, // max is 640px
+			height: 350, // max is 350px
+			showClose: true, // switch to 'true' for enabling close button
+			showCloseText: 'close', // type your text for close button
+			closeByEscape: true, // enables closing popup by 'Esc'..
+			closeByDocument: true, // ..and by clicking document itself
+			holderClass: '', // lets you name custom class for popin holder..
+			overlayClass: '', // ..and overlay block
+			enableStackAnimation: false, // another animation type
+			onBlurContainer: '', // enables blur filter for specified block
+			openOnEvent: true, // set to 'false' to init on load
+			setEvent: 'click', // use your event like 'mouseover', 'touchmove', etc.
+			onLoad: function (elem) { 
+			document.getElementById("newBrew").style.display="inline";
+			resetForm() ; 
+			return true; 
+			}, // set custom call before popin is inited..
+			onUnload: function (elem) { $('#newbeer').hide(); resetForm() ; return false }, // ..and after it was closed
+			template: document.getElementById("newbeer").cloneNode(true) // or function (elem) { ... }
+		});
+		function resetForm(){
+				$('.beername').eq(1).val('');
+				$('.beertype').eq(1).val('Altbier');
+		}
+		function getGraphData(){
+			return $.ajax({
+        	type: "GET",
+        	url: remote_url,
+        	async: false
+   		 	}).responseText;
+		}
+	</script>
+
+</html>

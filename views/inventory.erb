@@ -1,0 +1,330 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Beer grapher</title>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/beer.css" rel="stylesheet">
+	<link href="css/avgrund.css" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap-select.min.css">
+	<script src="js/jquery.min.js"></script>
+</head>
+<body>
+	<nav class="navbar navbar-default" role="navigation">
+		<div class="container-fluid">
+			<!-- Brand and toggle get grouped for better mobile display -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<div ><a class="navbar-brand" href="#"><img height="30" src="img/beer-icon.png">&nbsp;&nbsp;&nbsp;Beergrapher</a></div>
+			</div>
+
+			<!-- Collect the nav links, forms, and other content for toggling -->
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li class="active"><a href="#">Current brew</a></li>
+					<li id="newBrew"><a href="#" >New brew</a></li>
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Menu<b class="caret"></b></a>
+						<ul class="dropdown-menu">
+							<li><a href="#" onclick="deleteSelectedBrew()">Delete brew</a></li> 
+							<li><a href="#" onclick="setCurrentBrewAsActive()">Set brew as active</a></li> 
+							<li><a href="#" onclick="selectSensors()">Select sensors</a></li> 
+						</ul>
+					</li>
+					<li class="dropdown">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">Old brews<b class="caret"></b></a>
+						<ul class="dropdown-menu beermenu" id="brew_menu">
+
+						</ul>
+					</li>
+				</ul>
+
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="#">Current status</a></li>
+				</ul>
+			</div><!-- /.navbar-collapse -->
+		</div><!-- /.container-fluid -->
+	</nav>
+
+
+
+	
+	<div id="inventoryinput" class="col-md-3 panel panel-default col-md-offset-1">
+
+		<h4>Intentory item</h4>
+		<div class="panel-body">
+		<div class="row">
+			<div class="col-md-4">
+				<h4><span class="label label-default ">Type</span></h4>
+			</div>
+			<div class="col-md-6">
+				<select id="typeinput" class="beertype selectpicker show-tick form-control">
+				</select>
+			</div>
+		</div>
+	</br>
+		<div class="row">
+			<div class="col-md-4">
+				<h4><span class="label label-default ">Description</span></h4>
+			</div>
+			<div class="col-md-6">
+				<div class="input-group">
+					<input id="descriptioninput" type="text" class="form-control">
+				</div>
+			</div>
+		</div>
+	</br>
+		<div class="row">
+			<div class="col-md-4">
+				<h4><span class="label label-default ">Amount</span></h4>
+			</div>
+			<div class="col-md-6">
+				<div class="input-group">
+					<input id="amountinput" type="text" class="form-control">
+					<span class="input-group-addon"><select id="unitinput"></select></span>
+				</div>
+			</div>
+		</div>
+		<br>
+		
+	</br>
+		<div class="row">
+			<div class="col-md-10">
+				<button id="savebutton" type="button" class="btn btn-default col-md-4">Save</button>
+			</div>
+		</div>
+
+</div>
+</div>
+
+<div class="col-md-6">
+<table id="inventorytable" class="table table-striped table-hover">
+ <thead><th>Id</th><th>Type</th><th>Description</th><th>Amount</th><th></th><th></th></thead>
+ <tbody>
+ 	<tr>
+ 		<td>lol</td>
+ 		<td>lol</td>
+ 		<td>lol</td>
+ 		<td>lol</td>
+ 	</tr>
+ </tbody>
+ <tbody>
+ 	<tr>
+ 		<td><span id="newbutton" class="glyphicon glyphicon-plus"><small>New</small></span></td>
+ 		<td></td>
+ 		<td></td>
+ 		<td></td>
+ 		<td></td>
+ 		<td></td>
+ 	</tr>
+ </tbody>
+</table>
+</div>
+
+<script>
+
+		function getTypes(){
+			var types = Array();
+			types[0] = "Additive";
+			types[1] = "Equipment";
+			types[2] = "Hops";
+			types[3] = "Malt";
+			types[4] = "Yeast";
+			return types;
+		}
+
+		function getUnits(){
+			var units = Array();
+			units[0] = "ml";
+			units[1] = "cl";
+			units[2] = "l";
+			units[3] = "gr";
+			units[4] = "kg";
+			units[5] = "lb";
+			units[6] = "oz";
+			units[7] = "vial";
+			units[8] = "bag";
+			return units;
+		}
+
+		$(window).on('load', function () {
+				updateInventoryList();
+				setValuesOnSelect(getTypes(),document.getElementById("typeinput"));
+				setValuesOnSelect(getUnits(),document.getElementById("unitinput"));
+
+        		$("#descriptioninput")[0].onkeypress = validateSaveState;
+        		$("#amountinput")[0].onkeypress = validateSaveState;
+        		$("#savebutton")[0].onclick = saveItem;
+        		$("#newbutton")[0].onclick = newItem;
+        		document.getElementById('typeinput').addEventListener('valueChanged', validateSaveState);
+
+        });
+
+		function validateSaveState(){
+
+		}
+
+
+		function setValuesOnSelect(values,select){
+			for(var i = 0; i < values.length;i++){
+				var option = document.createElement("option");
+				option.innerHTML = values[i];
+				select.add(option,null);
+			}
+		}
+		function createEmptyItem(){
+			var obj = new Object();
+			obj.id = 0;
+			obj.amount = 0;
+			obj.description = "New Item"
+			obj.type = 1;
+			obj.unit = 1;
+			return obj;
+		}
+
+		function deleteItem(){
+
+			if (window.confirm("Do you really want to delete "+this.parent.inventoryObject.description+"?")) { 
+				var jsonData = inventoryItemToJson(this.parent.inventoryObject);
+				$.ajax
+					   ({
+					      type: "DELETE",
+					      url: '/inventory',
+					      data:jsonData ,
+					      success: function () {
+					      	updateInventoryList();
+					      }
+
+					  });	
+			}	
+
+		}
+
+		function createDeleteIcon(){
+			var icon = createIcon("remove");
+			icon.onclick = deleteItem;
+			return icon;
+		}
+
+		function createEditIcon(){
+			var icon = createIcon("pencil");
+			icon.onclick = function(){
+				setItemToEdit(this.parent.inventoryObject);
+			}
+			return icon;
+		}
+		function createIcon(iconName){
+			var icon = document.createElement("span");
+      		icon.classList.add("glyphicon")
+      		icon.classList.add("glyphicon-"+iconName);
+      		return icon;
+		}
+		function newItem(){
+			setItemToEdit(createEmptyItem());
+			saveItem();
+			setTimeout
+			window.setTimeout(function(){
+				var table = document.getElementById("inventorytable").tBodies[0];
+				lastRow = table.rows[table.rows.length-1];
+				setItemToEdit(lastRow.inventoryObject);
+			},100);
+			
+		}
+
+		function inventoryItemToJson(item){
+			var jsonData = '{"id": "' + item.id + '",'+
+        					 '"amount": "' + item.amount + '",'+
+        					 '"description": "' + item.description + '",'+
+        					 '"type": "' + item.type + '",'+
+        					 '"unit" : "' + item.unit + '"}'
+			 return jsonData;
+		}
+		function saveItem(){
+			itemToSave = document.getElementById("inventoryinput").inventoryObject;
+			itemToSave.unit = $("#unitinput")[0].selectedIndex+1;
+        	itemToSave.amount = $("#amountinput")[0].value;
+        	itemToSave.description = $("#descriptioninput")[0].value;
+        	itemToSave.type = $("#typeinput")[0].selectedIndex +1;
+
+        	var jsonData = inventoryItemToJson(itemToSave);
+
+        	console.log(jsonData);
+        	$.ajax
+				   ({
+				      type: "POST",
+				      url: '/inventory',
+				      data:jsonData ,
+				      success: function () {
+				      	updateInventoryList();
+				      }
+
+				  });				 
+		}
+
+        function updateInventoryList(){
+        	var table = document.getElementById("inventorytable").tBodies[0];
+        	table.innerHTML = "";
+        	$.ajax
+			   ({
+			      type: "GET",
+			      url: '/inventory',
+			      success: function (data) {
+			      	var inventoryList = jQuery.parseJSON(data);
+			      	for(var i = inventoryList.length-1; i >= 0;i--){
+			      		var type = inventoryList[i].type;
+			      		var amount = inventoryList[i].amount;
+			      		var description = inventoryList[i].description;
+			      		var unit = inventoryList[i].unit;
+			      		var id = inventoryList[i].id;
+
+			      		row = table.insertRow();
+
+			      		var deleteIcon = createDeleteIcon();
+			      		deleteIcon.parent = row;
+			      		row.insertCell().appendChild(deleteIcon);
+
+						var editIcon = createEditIcon();
+			      		editIcon.parent = row;
+			      		row.insertCell().appendChild(editIcon);
+
+			        	row.insertCell().innerHTML = amount+" "+getUnits()[unit-1];
+			        	row.insertCell().innerHTML = description;
+			        	row.insertCell().innerHTML = getTypes()[type-1];
+			      		row.insertCell().innerHTML = id;
+			      		row.inventoryObject = inventoryList[i];
+			      	}
+			      	setItemToEdit(inventoryList[0]);
+			      }
+
+			  });
+
+        }
+    	function setItemToEdit(item){
+    		var table = document.getElementById("inventorytable").tBodies[0];
+    		for(var i = 0; i < table.rows.length;i++){
+    			table.rows[i].classList.toggle('success', false)
+    			if(table.rows[i].inventoryObject.id == item.id){
+    			table.rows[i].classList.toggle('success', true)
+    				console.log("SETTING ON ROW NO:"+i);
+
+    			}
+    		}
+
+			document.getElementById("inventoryinput").inventoryObject = item;
+    		$("#unitinput")[0].selectedIndex = item.unit-1;
+    		$("#amountinput")[0].value = item.amount;
+    		$("#descriptioninput")[0].value = item.description;
+    		$("#typeinput")[0].selectedIndex = item.type-1;
+
+		}
+    
+
+</script>
+</html>
